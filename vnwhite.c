@@ -8,14 +8,14 @@
  *	0 1 ==> output 1 bit
  *	1 1 ==> (output nothing)
  *
- * @(#) $Revision: 1.5 $
- * @(#) $Id: vnwhite.c,v 1.5 2006/03/17 09:19:07 chongo Exp chongo $
- * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
- *
- * Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
- *
  * See:
  *	http://en.wikipedia.org/wiki/Hardware_random_number_generator#Software_whitening
+ *
+ * @(#) $Revision: 1.6 $
+ * @(#) $Id: vnwhite.c,v 1.6 2006/03/17 09:33:35 chongo Exp chongo $
+ * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
+ *
+ * Copyright (c) 2004-2005 by Landon Curt Noll.  All Rights Reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
  * its documentation for any purpose and without fee is hereby granted,
@@ -58,7 +58,7 @@
 #endif
 
 /*
- * my vars
+ * static vars
  */
 static int debug_level = 0;
 static char *program = NULL;
@@ -139,7 +139,9 @@ static void load_tbl(void);
 
 
 /*
- * main
+ * main - our program
+ *
+ * NOTE: see usage message and lead comment above
  */
 int
 main(int argc, char *argv[])
@@ -360,7 +362,12 @@ load_tbl(void)
 
 
 /*
- * dbg - debug
+ * dbg - debug output to stderr if -v level is set high enough
+ *
+ * given:
+ *	level	the minimum debug level needed to output the message
+ *	fmt	the debug format
+ *	...	optional args of the debug format
  */
 static void
 dbg(int level, char *fmt, ...)
