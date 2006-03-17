@@ -8,9 +8,9 @@
  *	0 1 ==> output 1 bit
  *	1 1 ==> (output nothing)
  *
- * @(#) $Revision$
- * @(#) $Id$
- * @(#) $Source$
+ * @(#) $Revision: 1.1 $
+ * @(#) $Id: vnwhite.c,v 1.1 2006/03/17 07:54:39 chongo Exp chongo $
+ * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
  *
  * Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
  *
@@ -154,6 +154,7 @@ main(int argc, char *argv[])
 	switch (i) {
 	case 'v':
 	    debug_level = atoi(optarg);
+	    dbg(1, "debug level set to %d", debug_level);
 	    break;
 	default:
 	    fprintf(stderr, usage, program);
@@ -339,7 +340,7 @@ dbg(int level, char *fmt, ...)
     va_list ap;		/* argument list */
 
     /* do nothing if the debug level is too low */
-    if (level < debug_level) {
+    if (level > debug_level) {
 	return;
     }
 
