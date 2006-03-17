@@ -8,8 +8,8 @@
  *	0 1 ==> output 1 bit
  *	1 1 ==> (output nothing)
  *
- * @(#) $Revision: 1.4 $
- * @(#) $Id: vnwhite.c,v 1.4 2006/03/17 08:50:06 chongo Exp chongo $
+ * @(#) $Revision: 1.5 $
+ * @(#) $Id: vnwhite.c,v 1.5 2006/03/17 09:19:07 chongo Exp chongo $
  * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
  *
  * Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
@@ -188,12 +188,16 @@ main(int argc, char *argv[])
     while ((c = getchar()) != EOF) {
 
 	/*
-	 * Von Neumann whiten the input octet
+	 * input accounting
 	 */
 	dbg(2, "input octet: 0x%02x", c);
 	++input_octets;
 	dbg(2, "converted input to %d low order bits of 0x%02x",
 	    vn_amt[c], vn_out[c]);
+
+	/*
+	 * Von Neumann whiten the input octet
+	 */
 	/* next 2 lines are the core of the Von Neumann whitener algorithm */
 	out |= (vn_out[c] << out_bit_len);
 	out_bit_len += vn_amt[c];
@@ -202,6 +206,10 @@ main(int argc, char *argv[])
 	 * if we have a full octet in the output buffer, then write it
 	 */
         if (out_bit_len >= OCTET_BITS) {
+
+	    /*
+	     * output accounting
+	     */
 	    dbg(2, "will output octet: 0x%02x", out & (OCTET_VALS-1));
 	    if (putchar(out & (OCTET_VALS-1)) == EOF) {
 		dbg(1, "end of processing output");
@@ -209,25 +217,18 @@ main(int argc, char *argv[])
 		break;
 	    }
 	    ++output_octets;
-	    /* remove the octet that we just wrote from the output buffer */
-	    out_bit_len -= OCTET_BITS;
+
+	    /*
+	     * remove the octet that we just wrote from the output buffer
+	     */
 	    out >>= OCTET_BITS;
+	    out_bit_len -= OCTET_BITS;
 	}
     }
-    dbg(1, "end of processing input");
-    if (c == EOF) {
-	dbg(1, "%s on input", (feof(stdin) ? "EOF" : "error"));
-    }
 
     /*
-     * optional accounting
-     */
-    dbg(1, "input octet(s): %d", input_octets);
-    dbg(1, "input bit(s): %d", input_octets*OCTET_BITS);
-    dbg(1, "output octet(s): %d", output_octets);
-    dbg(1, "output bit(s): %d", output_octets*OCTET_BITS);
-
-    /*
+     * final accounting
+     *
      * NOTE: We could have written any bits remaining in the output buffer.
      *	     Because we must write in whole octets, the result would have
      *	     to be 0-bit padded resulting in an unbalanced output.  In a
@@ -237,11 +238,24 @@ main(int argc, char *argv[])
      *	     with non-balanced 0-bit padding, we choose to toss the
      *	     final fractional octet.
      */
-    dbg(1, "left %d bit(s) in the output buffer", out_bit_len);
-    if (out_bit_len > 0) {
-    	dbg(2, "tossing the low order %d output bit(s) of: 0x%02x",
-		out & (OCTET_VALS-1));
+    dbg(1, "end of processing input");
+    if (c == EOF) {
+	dbg(1, "%s on input", (feof(stdin) ? "EOF" : "error"));
     }
+    dbg(1, "input octet(s): %d", input_octets);
+    dbg(1, "input bit(s): %d", input_octets*OCTET_BITS);
+    dbg(1, "output octet(s): %d", output_octets);
+    dbg(1, "output bit(s): %d", output_octets*OCTET_BITS);
+    dbg(1, "left %d bit(s) behind in the output buffer", out_bit_len);
+    if (out_bit_len > 0) {
+    	dbg(1, "tossing the low order %d output bit(s) of: 0x%02x",
+		out_bit_len, out & (OCTET_VALS-1));
+    }
+    dbg(1, "input bit(s) to output bit(s) ratio: %f",
+	    ((output_octets*OCTET_BITS+out_bit_len != 0) ?
+		 ((double)(input_octets*OCTET_BITS) /
+		   (double)(output_octets*OCTET_BITS+out_bit_len)) :
+		 (double)0.0));
 
     /*
      * All Done!!! -- Jessica Noll, Age 2
