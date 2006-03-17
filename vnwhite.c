@@ -8,8 +8,8 @@
  *	0 1 ==> output 1 bit
  *	1 1 ==> (output nothing)
  *
- * @(#) $Revision: 1.1 $
- * @(#) $Id: vnwhite.c,v 1.1 2006/03/17 07:54:39 chongo Exp chongo $
+ * @(#) $Revision: 1.2 $
+ * @(#) $Id: vnwhite.c,v 1.2 2006/03/17 08:01:05 chongo Exp chongo $
  * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
  *
  * Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
@@ -49,6 +49,11 @@
 #define OCTET_BITS (8)			/* there are 8 bits in an octet */
 #define OCTET_VALS (1<<OCTET_BITS)	/* an octet can have 1 of 2^8 values */
 #undef BUILD_TBL	/* define BUILD_TBL to rebuild vn_amt[] & vn_out[] */
+#if defined(BUILD_TBL)
+# define CONST
+#else
+# define CONST const
+#endif
 
 /*
  * my vars
@@ -62,7 +67,7 @@ static char *usage = "usage: %s [-v level]\n";
  *
  * NOTE: 0 <= vn_amt[i] <= 4
  */
-static int vn_amt[OCTET_VALS] = {
+static CONST int vn_amt[OCTET_VALS] = {
  0, 1, 1, 0, 1, 2, 2, 1, 1, 2, 2, 1, 0, 1, 1, 0,
  1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 1, 2, 2, 1,
  1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 1, 2, 2, 1,
@@ -87,7 +92,7 @@ static int vn_amt[OCTET_VALS] = {
  *
  * NOTE: 0 <= vn_out[i] <= 15
  */
-static int vn_out[OCTET_VALS] = {
+static CONST int vn_out[OCTET_VALS] = {
  0x00, 0x01, 0x00, 0x00, 0x01, 0x03, 0x02, 0x01,
  0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00,
  0x01, 0x03, 0x02, 0x01, 0x03, 0x07, 0x06, 0x03,
@@ -176,6 +181,8 @@ main(int argc, char *argv[])
     /*
      * process stdin according to the Von Neumann whitener algorithm
      */
+    clearerr(stdin);
+    clearerr(stdout);
     while ((c = getchar()) != EOF) {
 
 	/*
@@ -194,7 +201,14 @@ main(int argc, char *argv[])
         if (out_bit_len >= OCTET_BITS) {
 	    dbg(2, "will output octet: 0x%02x", out & (OCTET_VALS-1));
 	    if (putchar(out & (OCTET_VALS-1)) == EOF) {
-		dbg(1, "EOF on output");
+		dbg(1, "end of processing output");
+		if (feof(stdout)) {
+		    dbg(1, "EOF while writing output");
+		} else if (ferror(stdout)) {
+		    dbg(1, "error while writing output");
+		} else {
+		    dbg(1, "unknown failure while writing output");
+		}
 		break;
 	    }
 	    ++output_octets;
@@ -202,7 +216,12 @@ main(int argc, char *argv[])
 	    out >>= OCTET_BITS;
 	}
     }
-    dbg(1, "EOF on input");
+    dbg(1, "end of processing input");
+    if (feof(stdin)) {
+	dbg(1, "EOF on input");
+    else if (ferror(stdin)) {
+	dbg(1, "error on input");
+    }
 
     /*
      * if remaining bits in output buffer, write it with 0 padding
@@ -212,7 +231,13 @@ main(int argc, char *argv[])
 	dbg(2, "final output octet: 0x%02x", out & (OCTET_VALS-1));
 	if (putchar(out & (OCTET_VALS-1)) != EOF) {
 	    ++output_octets;
-        }
+        } else if (feof(stdout)) {
+	    dbg(1, "EOF while writing final output");
+	} else if (ferror(stdout)) {
+	    dbg(1, "error while writing final output");
+	} else {
+	    dbg(1, "unknown failure while writing final output");
+	}
     }
 
     /*
@@ -302,7 +327,7 @@ load_tbl(void)
 	fprintf(stderr, " *\n");
 	fprintf(stderr, " * NOTE: 0 <= vn_amt[i] <= 4\n");
         fprintf(stderr, " */\n");
-        fprintf(stderr, "static int vn_amt[OCTET_VALS] = {\n");
+        fprintf(stderr, "static CONST int vn_amt[OCTET_VALS] = {\n");
 	for (i=0; i < OCTET_VALS; i += 16) {
 	    for (j=0; j < 16; ++j) {
 	        fprintf(stderr, " %d,", vn_amt[i+j]);
@@ -317,7 +342,7 @@ load_tbl(void)
 	fprintf(stderr, " *\n");
 	fprintf(stderr, " * NOTE: 0 <= vn_out[i] <= 15\n");
         fprintf(stderr, " */\n");
-        fprintf(stderr, "static int vn_out[OCTET_VALS] = {\n");
+        fprintf(stderr, "static CONST int vn_out[OCTET_VALS] = {\n");
 	for (i=0; i < OCTET_VALS; i += 8) {
 	    for (j=0; j < 8; ++j) {
 	        fprintf(stderr, " 0x%02x,", vn_out[i+j]);
