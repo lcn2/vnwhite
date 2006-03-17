@@ -8,8 +8,8 @@
  *	0 1 ==> output 1 bit
  *	1 1 ==> (output nothing)
  *
- * @(#) $Revision: 1.2 $
- * @(#) $Id: vnwhite.c,v 1.2 2006/03/17 08:01:05 chongo Exp chongo $
+ * @(#) $Revision: 1.3 $
+ * @(#) $Id: vnwhite.c,v 1.3 2006/03/17 08:48:28 chongo Exp chongo $
  * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
  *
  * Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
@@ -206,8 +206,6 @@ main(int argc, char *argv[])
 		    dbg(1, "EOF while writing output");
 		} else if (ferror(stdout)) {
 		    dbg(1, "error while writing output");
-		} else {
-		    dbg(1, "unknown failure while writing output");
 		}
 		break;
 	    }
@@ -219,7 +217,7 @@ main(int argc, char *argv[])
     dbg(1, "end of processing input");
     if (feof(stdin)) {
 	dbg(1, "EOF on input");
-    else if (ferror(stdin)) {
+    } else if (ferror(stdin)) {
 	dbg(1, "error on input");
     }
 
@@ -235,8 +233,6 @@ main(int argc, char *argv[])
 	    dbg(1, "EOF while writing final output");
 	} else if (ferror(stdout)) {
 	    dbg(1, "error while writing final output");
-	} else {
-	    dbg(1, "unknown failure while writing final output");
 	}
     }
 
