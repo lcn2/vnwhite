@@ -1,18 +1,32 @@
 /*
  * vmwhite - Von Neumann whitener
  *
- * Given pairs of bits on input, produce 0 or 1 bits of output.
+ * For each pair of input bits, produce 0 or 1 bits of output according to:
  *
  *	0 0 ==> (output nothing)
  *	1 0 ==> output 0 bit
  *	0 1 ==> output 1 bit
  *	1 1 ==> (output nothing)
  *
- * See:
+ * From:
+ *
  *	http://en.wikipedia.org/wiki/Hardware_random_number_generator#Software_whitening
  *
- * @(#) $Revision: 1.6 $
- * @(#) $Id: vnwhite.c,v 1.6 2006/03/17 09:33:35 chongo Exp chongo $
+ * John von Neumann invented a simple algorithm to fix simple bias, and
+ * reduce correlation: it considers bits two at a time, taking one of
+ * three actions: when two successive bits are the same, they are not used
+ * as a random bit, a sequence of 0,1 becomes a 1, and a sequence of 1,0
+ * becomes a 0. This eliminates simple bias, and is easy to implement as
+ * a computer program or in digital logic. This technique works no matter
+ * how the bits have been generated. It cannot assure randomness in its
+ * output, however. What it can do is (with significant loss) transform a
+ * random stream with a frequency of 1's different from 50% into a stream
+ * with that frequency, which is useful with some physical sources. When
+ * the random stream has a 50% frequency of 1's to begin with, it reduces
+ * the bit rate available by a factor of four, on average.
+ *
+ * @(#) $Revision: 1.7 $
+ * @(#) $Id: vnwhite.c,v 1.7 2006/03/17 09:38:21 chongo Exp chongo $
  * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
  *
  * Copyright (c) 2004-2005 by Landon Curt Noll.  All Rights Reserved.
