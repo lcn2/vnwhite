@@ -8,8 +8,8 @@
  *	0 1 ==> output 1 bit
  *	1 1 ==> (output nothing)
  *
- * @(#) $Revision: 1.3 $
- * @(#) $Id: vnwhite.c,v 1.3 2006/03/17 08:48:28 chongo Exp chongo $
+ * @(#) $Revision: 1.4 $
+ * @(#) $Id: vnwhite.c,v 1.4 2006/03/17 08:50:06 chongo Exp chongo $
  * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
  *
  * Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
@@ -48,7 +48,9 @@
 
 #define OCTET_BITS (8)			/* there are 8 bits in an octet */
 #define OCTET_VALS (1<<OCTET_BITS)	/* an octet can have 1 of 2^8 values */
-#undef BUILD_TBL	/* define BUILD_TBL to rebuild vn_amt[] & vn_out[] */
+
+/* define BUILD_TBL and run with -v 3 to rebuild vn_amt[] and vn_out[] arrays */
+#undef BUILD_TBL
 #if defined(BUILD_TBL)
 # define CONST
 #else
@@ -192,62 +194,53 @@ main(int argc, char *argv[])
 	++input_octets;
 	dbg(2, "converted input to %d low order bits of 0x%02x",
 	    vn_amt[c], vn_out[c]);
+	/* next 2 lines are the core of the Von Neumann whitener algorithm */
 	out |= (vn_out[c] << out_bit_len);
 	out_bit_len += vn_amt[c];
 
 	/*
-	 * if we have at least a full octet in the output buffer, then write it
+	 * if we have a full octet in the output buffer, then write it
 	 */
         if (out_bit_len >= OCTET_BITS) {
 	    dbg(2, "will output octet: 0x%02x", out & (OCTET_VALS-1));
 	    if (putchar(out & (OCTET_VALS-1)) == EOF) {
 		dbg(1, "end of processing output");
-		if (feof(stdout)) {
-		    dbg(1, "EOF while writing output");
-		} else if (ferror(stdout)) {
-		    dbg(1, "error while writing output");
-		}
+		dbg(1, "%s on output", (feof(stdout) ? "EOF" : "error"));
 		break;
 	    }
 	    ++output_octets;
+	    /* remove the octet that we just wrote from the output buffer */
 	    out_bit_len -= OCTET_BITS;
 	    out >>= OCTET_BITS;
 	}
     }
     dbg(1, "end of processing input");
-    if (feof(stdin)) {
-	dbg(1, "EOF on input");
-    } else if (ferror(stdin)) {
-	dbg(1, "error on input");
-    }
-
-    /*
-     * if remaining bits in output buffer, write it with 0 padding
-     */
-    dbg(2, "there are %d bits in the output buffer", out_bit_len);
-    if (out_bit_len > 0) {
-	dbg(2, "final output octet: 0x%02x", out & (OCTET_VALS-1));
-	if (putchar(out & (OCTET_VALS-1)) != EOF) {
-	    ++output_octets;
-        } else if (feof(stdout)) {
-	    dbg(1, "EOF while writing final output");
-	} else if (ferror(stdout)) {
-	    dbg(1, "error while writing final output");
-	}
+    if (c == EOF) {
+	dbg(1, "%s on input", (feof(stdin) ? "EOF" : "error"));
     }
 
     /*
      * optional accounting
      */
-    dbg(1, "input octets: %d", input_octets);
-    dbg(1, "input bits: %d", input_octets*OCTET_BITS);
-    dbg(1, "output octets: %d", output_octets);
-    if (out_bit_len == 0) {
-	dbg(1, "output bits: %d", output_octets*OCTET_BITS);
-	dbg(1, "low order output bits in last octet: %d", OCTET_BITS);
-    } else {
-	dbg(1, "output bits: %d", (output_octets-1)*OCTET_BITS + out_bit_len);
-	dbg(1, "low order output bits in last octet: %d", out_bit_len);
+    dbg(1, "input octet(s): %d", input_octets);
+    dbg(1, "input bit(s): %d", input_octets*OCTET_BITS);
+    dbg(1, "output octet(s): %d", output_octets);
+    dbg(1, "output bit(s): %d", output_octets*OCTET_BITS);
+
+    /*
+     * NOTE: We could have written any bits remaining in the output buffer.
+     *	     Because we must write in whole octets, the result would have
+     *	     to be 0-bit padded resulting in an unbalanced output.  In a
+     *	     daemon or kernel driver one could just keep around these
+     *	     partial bits for next time.  However in the case of a filter
+     *	     in a pipe, we must end sometime.  So rather than output
+     *	     with non-balanced 0-bit padding, we choose to toss the
+     *	     final fractional octet.
+     */
+    dbg(1, "left %d bit(s) in the output buffer", out_bit_len);
+    if (out_bit_len > 0) {
+    	dbg(2, "tossing the low order %d output bit(s) of: 0x%02x",
+		out & (OCTET_VALS-1));
     }
 
     /*
@@ -259,7 +252,7 @@ main(int argc, char *argv[])
 
 #if defined(BUILD_TBL)
 /*
- * load_tbl - load tables
+ * load_tbl - load the vn_amt[] and vn_out[] tables
  *
  * NOTE: For optimal performance, use the -v 3 (or higher) debug output to
  *	 compile in a the table as static values.
