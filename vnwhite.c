@@ -25,9 +25,9 @@
  * the random stream has a 50% frequency of 1's to begin with, it reduces
  * the bit rate available by a factor of four, on average.
  *
- * @(#) $Revision: 1.7 $
- * @(#) $Id: vnwhite.c,v 1.7 2006/03/17 09:38:21 chongo Exp chongo $
- * @(#) $Source: /usr/local/src/cmd/vnwhite/RCS/vnwhite.c,v $
+ * @(#) $Revision: 1.8 $
+ * @(#) $Id: vnwhite.c,v 1.8 2006/03/17 09:46:04 chongo Exp $
+ * @(#) $Source: /usr/local/src/bin/vnwhite/RCS/vnwhite.c,v $
  *
  * Copyright (c) 2004-2005 by Landon Curt Noll.  All Rights Reserved.
  *

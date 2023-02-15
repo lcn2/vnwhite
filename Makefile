@@ -3,9 +3,9 @@
 #
 # vnwhite - Von Neumann whitener
 #
-# @(#) $Revision$
-# @(#) $Id$
-# @(#) $Source$
+# @(#) $Revision: 1.1 $
+# @(#) $Id: Makefile,v 1.1 2006/03/17 07:54:39 chongo Exp $
+# @(#) $Source: /usr/local/src/bin/vnwhite/RCS/Makefile,v $
 #
 # Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
 #
