@@ -25,11 +25,7 @@
  * the random stream has a 50% frequency of 1's to begin with, it reduces
  * the bit rate available by a factor of four, on average.
  *
- * @(#) $Revision: 1.8 $
- * @(#) $Id: vnwhite.c,v 1.8 2006/03/17 09:46:04 chongo Exp $
- * @(#) $Source: /usr/local/src/bin/vnwhite/RCS/vnwhite.c,v $
- *
- * Copyright (c) 2004-2005 by Landon Curt Noll.  All Rights Reserved.
+ * Copyright (c) 2004-2005,2025 by Landon Curt Noll.  All Rights Reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
  * its documentation for any purpose and without fee is hereby granted,
@@ -76,7 +72,8 @@
  */
 static int debug_level = 0;
 static char *program = NULL;
-static char *usage = "usage: %s [-v level]\n";
+static char *usage = "usage: %s [-h] [-v level] [-V]\n";
+static char *version = "1.0.0 2025-03-23";
 
 /*
  * given octet value i, we output vn_amt[i] bits
@@ -173,20 +170,27 @@ main(int argc, char *argv[])
      * parse args
      */
     program = argv[0];
-    while ((i = getopt(argc, argv, "v:")) != -1) {
+    while ((i = getopt(argc, argv, "hv:V")) != -1) {
 	switch (i) {
+	case 'h':
+	    fprintf(stderr, usage, program);
+	    exit(2);
 	case 'v':
 	    debug_level = atoi(optarg);
 	    dbg(1, "debug level set to %d", debug_level);
 	    break;
+	case 'V':
+	    fprintf(stderr, "%s\n", version);
+	    exit(2);
+	    break;
 	default:
 	    fprintf(stderr, usage, program);
-	    exit(1);
+	    exit(3);
 	}
     }
     if (optind < argc) {
 	fprintf(stderr, usage, program);
-	exit(2);
+	exit(3);
     }
 
 #if defined(BUILD_TBL)
@@ -264,7 +268,7 @@ main(int argc, char *argv[])
     dbg(1, "output bit(s): %d", output_octets*OCTET_BITS);
     dbg(1, "left %d bit(s) behind in the output buffer", out_bit_len);
     if (out_bit_len > 0) {
-    	dbg(1, "tossing the low order %d output bit(s) of: 0x%02x",
+	dbg(1, "tossing the low order %d output bit(s) of: 0x%02x",
 		out_bit_len, out & (OCTET_VALS-1));
     }
     dbg(1, "input bit(s) to output bit(s) ratio: %f",
