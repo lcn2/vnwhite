@@ -37,8 +37,8 @@ sudo make install clobber
 
 # To use
 
-```sh
-/usr/local/bin/vnwhite < input > output
+```
+/usr/local/bin/vnwhite [-h] [-v level] [-V] < input > output
 ```
 
 
